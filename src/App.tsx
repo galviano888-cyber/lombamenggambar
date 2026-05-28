@@ -216,7 +216,7 @@ function RoomFormPanel({ onStart, socket }: { onStart: (role: PlayerRole) => voi
                 />
               </div>
               <div className="flex flex-col gap-1 text-left">
-                <label className="text-xs font-bold text-foreground uppercase tracking-wide">Room Password <span className="text-muted-foreground normal-case">(optional)</span></label>
+                <label className="text-xs font-bold text-foreground uppercase tracking-wide">Room Password <span className="text-gray-500 dark:text-gray-400 normal-case">(optional)</span></label>
                 <input
                   id="create-room-password"
                   type="password"
@@ -244,7 +244,7 @@ function RoomFormPanel({ onStart, socket }: { onStart: (role: PlayerRole) => voi
                     {Math.floor(duration / 60)}:{(duration % 60).toString().padStart(2, "0")}
                   </span>
                 </div>
-                <div className="flex justify-between text-xs text-muted-foreground font-medium">
+                <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400 font-medium">
                   <span>1 min</span>
                   <span>5 min</span>
                 </div>
@@ -308,16 +308,16 @@ function RoomFormPanel({ onStart, socket }: { onStart: (role: PlayerRole) => voi
             <div className="flex flex-col gap-4">
               {/* Room code display */}
               <div className="border-4 border-black bg-white dark:bg-card p-4 flex flex-col items-center gap-2" style={{ boxShadow: "4px 4px 0 #000" }}>
-                <div className="text-xs font-bold text-muted-foreground uppercase">Share this code with others</div>
+                <div className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">Share this code with others</div>
                 <div className="pixel-md text-primary" style={{ letterSpacing: "0.15em", textShadow: "2px 2px 0 #000" }}>
                   {roomCode}
                 </div>
-                <div className="text-xs text-muted-foreground font-bold">Max {maxPlayers} players</div>
+                <div className="text-xs text-gray-500 dark:text-gray-400 font-bold">Max {maxPlayers} players</div>
               </div>
 
               {/* Player list */}
               <div className="border-4 border-black bg-white dark:bg-card p-3 flex flex-col gap-2">
-                <div className="text-xs font-bold text-muted-foreground uppercase">Players ({players.length}/{maxPlayers})</div>
+                <div className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">Players ({players.length}/{maxPlayers})</div>
                 {players.map((p, i) => (
                   <div key={i} className="flex items-center gap-2 border-2 border-black p-2 bg-accent">
                     <div className="size-3 rounded-full bg-secondary border-2 border-black shrink-0" />
@@ -327,7 +327,7 @@ function RoomFormPanel({ onStart, socket }: { onStart: (role: PlayerRole) => voi
                 {players.length < maxPlayers && (
                   <div className="flex items-center gap-2 border-2 border-dashed border-black/30 p-2">
                     <div className="size-3 rounded-full bg-primary animate-pulse border-2 border-black shrink-0" />
-                    <span className="text-sm text-muted-foreground font-bold">Waiting for players...</span>
+                    <span className="text-sm text-gray-500 dark:text-gray-400 font-bold">Waiting for players...</span>
                   </div>
                 )}
               </div>
@@ -386,7 +386,7 @@ function RoomFormPanel({ onStart, socket }: { onStart: (role: PlayerRole) => voi
                 />
               </div>
               <div className="flex flex-col gap-1 text-left">
-                <label className="text-xs font-bold text-foreground uppercase tracking-wide">Room Password <span className="text-muted-foreground normal-case">(if required)</span></label>
+                <label className="text-xs font-bold text-foreground uppercase tracking-wide">Room Password <span className="text-gray-500 dark:text-gray-400 normal-case">(if required)</span></label>
                 <input
                   id="join-room-password"
                   type="password"
@@ -533,7 +533,7 @@ function ScoringScreen() {
       </div>
       <div className="text-center">
         <h2 className="pixel-md text-primary" style={{ textShadow: "2px 2px 0 #000" }}>JUDGING...</h2>
-        <p className="text-muted-foreground text-sm mt-2 font-bold">
+        <p className="text-gray-500 dark:text-gray-400 text-sm mt-2 font-bold">
           Analyzing your masterpiece
         </p>
       </div>
@@ -594,7 +594,7 @@ function ResultScreen({
             {/* Player info */}
             <div className="flex-1 min-w-0">
               <div className="font-bold text-foreground text-xs sm:text-sm truncate">{player.name}</div>
-              <div className="text-[10px] sm:text-xs text-muted-foreground font-medium italic truncate">{player.score.critique}</div>
+              <div className="text-[10px] sm:text-xs text-gray-500 dark:text-gray-400 font-medium italic truncate">{player.score.critique}</div>
             </div>
             {/* Score */}
             <div className="pixel-sm sm:pixel-md tabular-nums text-primary shrink-0" style={{ textShadow: "1px 1px 0 #000" }}>
@@ -607,7 +607,7 @@ function ResultScreen({
       {/* Score breakdown */}
       {ranked.length > 0 && (
         <div className="border-3 sm:border-4 border-black bg-card p-3 sm:p-4">
-          <div className="text-[10px] sm:text-xs font-bold text-muted-foreground uppercase mb-2 sm:mb-3">Score Breakdown</div>
+          <div className="text-[10px] sm:text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-2 sm:mb-3">Score Breakdown</div>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
             {[
               { label: "Shape", key: "shape" as const, color: "#5C94FC" },
