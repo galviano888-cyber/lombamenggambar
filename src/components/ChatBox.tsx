@@ -48,16 +48,16 @@ export function ChatBox({ socket }: { socket: Socket | null }) {
   }
 
   return (
-    <div className="fixed bottom-4 right-4 z-50">
+    <div className="fixed bottom-2 right-2 sm:bottom-4 sm:right-4 z-50">
       {/* Toggle button */}
       {!isOpen && (
         <button
           onClick={() => setIsOpen(true)}
-          className="arcade-btn bg-primary text-primary-foreground px-4 py-3 font-bold text-sm flex items-center gap-2"
+          className="arcade-btn bg-primary text-primary-foreground px-3 sm:px-4 py-2 sm:py-3 font-bold text-xs sm:text-sm flex items-center gap-2"
         >
           💬 Chat
           {messages.length > 0 && (
-            <span className="bg-white text-primary text-xs px-1.5 py-0.5 border-2 border-black font-bold">
+            <span className="bg-white text-primary text-[10px] sm:text-xs px-1.5 py-0.5 border-2 border-black font-bold">
               {messages.length}
             </span>
           )}
@@ -66,10 +66,10 @@ export function ChatBox({ socket }: { socket: Socket | null }) {
 
       {/* Chat panel */}
       {isOpen && (
-        <div className="w-72 border-4 border-black bg-card flex flex-col" style={{ boxShadow: "6px 6px 0 rgba(0,0,0,0.3)", maxHeight: "400px" }}>
+        <div className="w-[calc(100vw-16px)] sm:w-72 border-4 border-black bg-card flex flex-col" style={{ boxShadow: "4px 4px 0 rgba(0,0,0,0.3)", maxHeight: "300px" }}>
           {/* Header */}
-          <div className="flex items-center justify-between border-b-4 border-black bg-primary px-3 py-2">
-            <span className="text-xs font-bold text-primary-foreground uppercase">Chat</span>
+          <div className="flex items-center justify-between border-b-4 border-black bg-primary px-3 py-1.5 sm:py-2">
+            <span className="text-[10px] sm:text-xs font-bold text-primary-foreground uppercase">Chat</span>
             <button
               onClick={() => setIsOpen(false)}
               className="text-primary-foreground font-bold text-sm hover:opacity-70"
@@ -79,7 +79,7 @@ export function ChatBox({ socket }: { socket: Socket | null }) {
           </div>
 
           {/* Messages */}
-          <div className="flex-1 overflow-y-auto p-2 flex flex-col gap-1.5 min-h-[150px] max-h-[250px]">
+          <div className="flex-1 overflow-y-auto p-2 flex flex-col gap-1.5 min-h-[100px] max-h-[180px] sm:max-h-[250px]">
             {messages.length === 0 && (
               <div className="text-xs text-muted-foreground text-center py-4 font-medium">
                 No messages yet. Say hi!

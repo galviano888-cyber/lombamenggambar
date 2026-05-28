@@ -475,25 +475,24 @@ function LobbyScreen({ onStart, socket }: { onStart: (role: PlayerRole) => void;
       <LobbyDecorations />
 
       {/* Centered content */}
-      <div className="relative z-10 flex flex-col items-center justify-center gap-8 max-w-2xl mx-auto text-center py-4">
+      <div className="relative z-10 flex flex-col items-center justify-center gap-5 sm:gap-8 max-w-2xl mx-auto text-center py-4 px-2 sm:px-0">
         {/* Hero section */}
-        <div className="flex flex-col items-center gap-5">
+        <div className="flex flex-col items-center gap-3 sm:gap-5">
           {/* Animated logo */}
-          <div className="animate-bounce-in flex items-center justify-center size-24 bg-primary text-primary-foreground border-4 border-black" style={{ boxShadow: "8px 8px 0 rgba(0,0,0,0.4)" }}>
-            <Brush className="size-12 animate-wiggle" />
+          <div className="animate-bounce-in flex items-center justify-center size-16 sm:size-24 bg-primary text-primary-foreground border-4 border-black" style={{ boxShadow: "6px 6px 0 rgba(0,0,0,0.4)" }}>
+            <Brush className="size-8 sm:size-12 animate-wiggle" />
           </div>
 
-          {/* Title with color cycling shadow */}
+          {/* Title */}
           <div className="relative">
             <h1 className="pixel-lg text-primary relative z-10" style={{ textShadow: "3px 3px 0 #000, -1px -1px 0 #FBD000" }}>
-              DrawBattle Multiplayer
+              DrawBattle
             </h1>
-            <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-3/4 h-2 bg-black/20 blur-sm" />
           </div>
 
-          {/* Tagline with paint-themed styling */}
-          <div className="border-4 border-black bg-white/90 px-6 py-3" style={{ boxShadow: "4px 4px 0 rgba(0,0,0,0.3)" }}>
-            <p className="text-base font-bold text-foreground leading-relaxed">
+          {/* Tagline */}
+          <div className="border-4 border-black bg-white/90 px-4 sm:px-6 py-2 sm:py-3" style={{ boxShadow: "4px 4px 0 rgba(0,0,0,0.3)" }}>
+            <p className="text-sm sm:text-base font-bold text-foreground leading-relaxed">
               Two players. One prompt. Draw and compete!
               <br />
               <span className="text-primary">Who draws better?</span> Get scored across <span className="text-secondary">4 criteria!</span>
@@ -558,58 +557,58 @@ function ResultScreen({
   const tied = ranked.length >= 2 && ranked[0].total === ranked[1].total
 
   return (
-    <div className="flex flex-col gap-8 max-w-4xl mx-auto">
-      <div className="text-center flex flex-col items-center gap-4">
+    <div className="flex flex-col gap-4 sm:gap-8 max-w-4xl mx-auto">
+      <div className="text-center flex flex-col items-center gap-3 sm:gap-4">
         <div
-          className="flex items-center justify-center size-20 border-4 border-black bg-secondary"
-          style={{ boxShadow: "8px 8px 0 rgba(0,0,0,0.3)" }}
+          className="flex items-center justify-center size-14 sm:size-20 border-4 border-black bg-secondary"
+          style={{ boxShadow: "6px 6px 0 rgba(0,0,0,0.3)" }}
         >
-          <Trophy className="size-10 text-white" />
+          <Trophy className="size-7 sm:size-10 text-white" />
         </div>
-        <h2 className="pixel-lg text-primary" style={{ textShadow: "3px 3px 0 #000" }}>
+        <h2 className="pixel-md sm:pixel-lg text-primary" style={{ textShadow: "3px 3px 0 #000" }}>
           {tied ? "It's a Tie!" : `${winner.name} WINS!`}
         </h2>
-        <Badge className="gap-2 text-sm border-2 border-black bg-secondary text-secondary-foreground font-bold">
-          <Brush className="size-4" />
-          PROMPT: {result.prompt.toUpperCase()}
+        <Badge className="gap-2 text-xs sm:text-sm border-2 border-black bg-secondary text-secondary-foreground font-bold">
+          <Brush className="size-3 sm:size-4" />
+          {result.prompt.toUpperCase()}
         </Badge>
       </div>
 
       {/* Ranked results */}
-      <div className="flex flex-col gap-4">
+      <div className="flex flex-col gap-2 sm:gap-4">
         {ranked.map((player, i) => (
           <div key={player.index} className={[
-            "border-4 border-black p-4 flex items-center gap-4",
+            "border-3 sm:border-4 border-black p-2.5 sm:p-4 flex items-center gap-2 sm:gap-4",
             i === 0 ? "bg-accent" : "bg-card",
-          ].join(" ")} style={{ boxShadow: i === 0 ? "6px 6px 0 rgba(0,0,0,0.3)" : "4px 4px 0 rgba(0,0,0,0.2)" }}>
+          ].join(" ")} style={{ boxShadow: i === 0 ? "4px 4px 0 rgba(0,0,0,0.3)" : "3px 3px 0 rgba(0,0,0,0.2)" }}>
             {/* Rank */}
-            <div className="pixel-md text-primary shrink-0 w-10 text-center" style={{ textShadow: "2px 2px 0 #000" }}>
+            <div className="pixel-sm sm:pixel-md text-primary shrink-0 w-8 sm:w-10 text-center" style={{ textShadow: "1px 1px 0 #000" }}>
               {i === 0 ? "👑" : `#${i + 1}`}
             </div>
             {/* Drawing thumbnail */}
             {player.drawingDataUrl && (
-              <div className="border-2 border-black bg-white shrink-0">
+              <div className="border-2 border-black bg-white shrink-0 hidden sm:block">
                 <img src={player.drawingDataUrl} alt={`${player.name}'s drawing`} className="w-16 h-12 object-contain" />
               </div>
             )}
             {/* Player info */}
             <div className="flex-1 min-w-0">
-              <div className="font-bold text-foreground text-sm">{player.name}</div>
-              <div className="text-xs text-muted-foreground font-medium italic">{player.score.critique}</div>
+              <div className="font-bold text-foreground text-xs sm:text-sm truncate">{player.name}</div>
+              <div className="text-[10px] sm:text-xs text-muted-foreground font-medium italic truncate">{player.score.critique}</div>
             </div>
             {/* Score */}
-            <div className="pixel-md tabular-nums text-primary shrink-0" style={{ textShadow: "2px 2px 0 #000" }}>
+            <div className="pixel-sm sm:pixel-md tabular-nums text-primary shrink-0" style={{ textShadow: "1px 1px 0 #000" }}>
               {player.total}
             </div>
           </div>
         ))}
       </div>
 
-      {/* Score breakdown for winner */}
+      {/* Score breakdown */}
       {ranked.length > 0 && (
-        <div className="border-4 border-black bg-card p-4">
-          <div className="text-xs font-bold text-muted-foreground uppercase mb-3">Score Breakdown</div>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <div className="border-3 sm:border-4 border-black bg-card p-3 sm:p-4">
+          <div className="text-[10px] sm:text-xs font-bold text-muted-foreground uppercase mb-2 sm:mb-3">Score Breakdown</div>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
             {[
               { label: "Shape", key: "shape" as const, color: "#5C94FC" },
               { label: "Color", key: "color" as const, color: "#FBD000" },
@@ -664,28 +663,28 @@ function PunishmentScreen({
   isLoser: boolean
 }) {
   return (
-    <div className="flex flex-col gap-8 max-w-2xl mx-auto">
+    <div className="flex flex-col gap-4 sm:gap-8 max-w-2xl mx-auto">
       {/* Header */}
-      <div className="text-center flex flex-col items-center gap-4">
-        <div className="flex items-center justify-center size-20 border-4 border-black bg-destructive" style={{ boxShadow: "8px 8px 0 rgba(0,0,0,0.3)" }}>
-          <span className="text-4xl">🎴</span>
+      <div className="text-center flex flex-col items-center gap-3 sm:gap-4">
+        <div className="flex items-center justify-center size-14 sm:size-20 border-4 border-black bg-destructive" style={{ boxShadow: "6px 6px 0 rgba(0,0,0,0.3)" }}>
+          <span className="text-2xl sm:text-4xl">🎴</span>
         </div>
-        <h2 className="pixel-lg text-primary" style={{ textShadow: "3px 3px 0 #000" }}>
+        <h2 className="pixel-md sm:pixel-lg text-primary" style={{ textShadow: "3px 3px 0 #000" }}>
           PUNISHMENT CARD
         </h2>
-        <p className="text-sm font-bold text-foreground">
+        <p className="text-xs sm:text-sm font-bold text-foreground">
           {isLoser ? "Kamu kalah! Ini hukumanmu:" : "Lawan kalah! Ini hukumannya:"}
         </p>
       </div>
 
       {/* Punishment Card */}
       {punishment ? (
-        <div className="border-4 border-black bg-card p-8 flex flex-col items-center gap-6 animate-bounce-in" style={{ boxShadow: "8px 8px 0 rgba(0,0,0,0.3)" }}>
-          <span className="text-6xl">{punishment.icon}</span>
-          <div className="pixel-md text-center text-card-foreground leading-relaxed" style={{ textShadow: "1px 1px 0 rgba(0,0,0,0.2)" }}>
+        <div className="border-4 border-black bg-card p-4 sm:p-8 flex flex-col items-center gap-4 sm:gap-6 animate-bounce-in" style={{ boxShadow: "6px 6px 0 rgba(0,0,0,0.3)" }}>
+          <span className="text-4xl sm:text-6xl">{punishment.icon}</span>
+          <div className="pixel-sm sm:pixel-md text-center text-card-foreground leading-relaxed" style={{ textShadow: "1px 1px 0 rgba(0,0,0,0.2)" }}>
             {punishment.text}
           </div>
-          <Badge className="text-xs border-2 border-black bg-accent text-accent-foreground font-bold uppercase">
+          <Badge className="text-[10px] sm:text-xs border-2 border-black bg-accent text-accent-foreground font-bold uppercase">
             {punishment.category}
           </Badge>
         </div>
@@ -697,31 +696,31 @@ function PunishmentScreen({
 
       {/* Reroll button (only for loser) */}
       {isLoser && (
-        <div className="flex flex-col items-center gap-3">
+        <div className="flex flex-col items-center gap-2 sm:gap-3">
           <button
             onClick={onReroll}
             disabled={rerollsLeft <= 0}
-            className="arcade-btn w-full bg-accent text-accent-foreground text-base py-3 font-bold uppercase disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            className="arcade-btn w-full bg-accent text-accent-foreground text-sm sm:text-base py-2.5 sm:py-3 font-bold uppercase disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2"
           >
-            <RefreshCw className="size-5" />
-            Ganti Kartu ({rerollsLeft}/3 tersisa)
+            <RefreshCw className="size-4 sm:size-5" />
+            Ganti Kartu ({rerollsLeft}/3)
           </button>
           {rerollsLeft <= 0 && (
-            <span className="text-xs font-bold text-destructive">Tidak bisa ganti lagi!</span>
+            <span className="text-[10px] sm:text-xs font-bold text-destructive">Tidak bisa ganti lagi!</span>
           )}
         </div>
       )}
 
       {/* Play Again button (host only) */}
       {isHost ? (
-        <button onClick={onPlayAgain} className="arcade-btn w-full bg-secondary text-secondary-foreground text-lg py-4 font-bold uppercase gap-2 flex items-center justify-center">
-          <RefreshCw className="size-5" />
+        <button onClick={onPlayAgain} className="arcade-btn w-full bg-secondary text-secondary-foreground text-base sm:text-lg py-3 sm:py-4 font-bold uppercase gap-2 flex items-center justify-center">
+          <RefreshCw className="size-4 sm:size-5" />
           Play Again
         </button>
       ) : (
-        <div className="flex items-center justify-center gap-3 border-4 border-black bg-accent p-4">
-          <div className="size-3 rounded-full bg-primary animate-pulse border-2 border-black shrink-0" />
-          <span className="text-sm font-bold text-foreground uppercase">Waiting for host to start next round...</span>
+        <div className="flex items-center justify-center gap-2 sm:gap-3 border-4 border-black bg-accent p-3 sm:p-4">
+          <div className="size-2.5 sm:size-3 rounded-full bg-primary animate-pulse border-2 border-black shrink-0" />
+          <span className="text-[10px] sm:text-sm font-bold text-foreground uppercase">Waiting for host...</span>
         </div>
       )}
     </div>
@@ -965,24 +964,27 @@ export function App() {
   return (
     <div className="min-h-svh bg-background">
       <header className="border-b-4 border-black bg-card sticky top-0 z-50">
-        <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Brush className="size-6 text-foreground" />
-            <span className="pixel-md text-foreground" style={{ textShadow: "2px 2px 0 rgba(0,0,0,0.3)" }}>DrawBattle Multiplayer</span>
+        <div className="max-w-6xl mx-auto px-2 sm:px-4 h-12 sm:h-16 flex items-center justify-between">
+          <div className="flex items-center gap-2 sm:gap-3">
+            <Brush className="size-5 sm:size-6 text-foreground" />
+            <span className="pixel-sm sm:pixel-md text-foreground hidden sm:inline" style={{ textShadow: "2px 2px 0 rgba(0,0,0,0.3)" }}>DrawBattle</span>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
             {phase === "drawing" && (
               <>
                 <Badge className="gap-2 font-bold hidden sm:flex border-2 border-black bg-accent text-accent-foreground">
                   <Brush className="size-4" />
                   {prompt.toUpperCase()}
                 </Badge>
+                <Badge className="gap-1 font-bold flex sm:hidden border-2 border-black bg-accent text-accent-foreground text-xs px-2 py-1">
+                  {prompt.toUpperCase()}
+                </Badge>
                 {playerRole === "host" && (
                   <button
                     onClick={endRound}
-                    className="arcade-btn bg-destructive text-destructive-foreground px-4 py-2 font-bold text-sm gap-1.5 flex items-center"
+                    className="arcade-btn bg-destructive text-destructive-foreground px-2 sm:px-4 py-1.5 sm:py-2 font-bold text-xs sm:text-sm gap-1.5 flex items-center"
                   >
-                    END ROUND
+                    END
                   </button>
                 )}
               </>
@@ -992,18 +994,18 @@ export function App() {
         </div>
       </header>
 
-      <main className="max-w-6xl mx-auto px-4 py-8">
+      <main className="max-w-6xl mx-auto px-2 sm:px-4 py-4 sm:py-8">
         {phase === "lobby" && <LobbyScreen onStart={startGame} socket={socket} />}
         {phase === "countdown" && <CountdownScreen count={countdown} prompt={prompt} />}
         {phase === "drawing" && (
-          <div className="flex flex-col gap-6">
+          <div className="flex flex-col gap-3 sm:gap-6">
             <TimerBar timeLeft={timeLeft} total={roundDuration} />
             {/* Role badge */}
             <div className="flex justify-center">
-              <div className="flex items-center gap-2 border-4 border-black px-4 py-2 bg-card" style={{ boxShadow: "4px 4px 0 #000" }}>
-                <div className="size-3 border-2 border-black bg-primary" />
-                <span className="text-xs font-bold text-foreground uppercase">
-                  Draw your best! ({gamePlayers.length} players competing)
+              <div className="flex items-center gap-2 border-3 sm:border-4 border-black px-3 sm:px-4 py-1.5 sm:py-2 bg-card" style={{ boxShadow: "3px 3px 0 #000" }}>
+                <div className="size-2.5 sm:size-3 border-2 border-black bg-primary" />
+                <span className="text-[10px] sm:text-xs font-bold text-foreground uppercase">
+                  Draw your best! ({gamePlayers.length} players)
                 </span>
               </div>
             </div>

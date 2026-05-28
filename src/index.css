@@ -160,27 +160,34 @@
   body {
     @apply bg-background text-foreground;
   }
-  /* 8-bit pixel font for titles and scores */
+  /* 8-bit pixel font for titles and scores — responsive */
   .pixel-title {
     font-family: "Press Start 2P", cursive;
-    font-size: 1.5rem;
+    font-size: 1rem;
     letter-spacing: 0.1em;
     text-transform: uppercase;
   }
   .pixel-lg {
     font-family: "Press Start 2P", cursive;
-    font-size: 2rem;
+    font-size: 1.25rem;
     letter-spacing: 0.08em;
   }
   .pixel-md {
     font-family: "Press Start 2P", cursive;
-    font-size: 1rem;
+    font-size: 0.7rem;
     letter-spacing: 0.05em;
   }
   .pixel-sm {
     font-family: "Press Start 2P", cursive;
-    font-size: 0.75rem;
+    font-size: 0.6rem;
     letter-spacing: 0.05em;
+  }
+
+  @media (min-width: 640px) {
+    .pixel-title { font-size: 1.5rem; }
+    .pixel-lg { font-size: 2rem; }
+    .pixel-md { font-size: 1rem; }
+    .pixel-sm { font-size: 0.75rem; }
   }
   /* Retro arcade block button effect */
   .arcade-btn {
