@@ -167,7 +167,7 @@ const DrawingCanvas = forwardRef<DrawingCanvasHandle, Props>(
             width={600}
             height={400}
             className={cn(
-              "w-full touch-none block aspect-[4/3] sm:aspect-[3/2]",
+              "w-full touch-none block aspect-[3/4] sm:aspect-[3/2]",
               disabled ? "opacity-50 cursor-not-allowed pointer-events-none" : "cursor-crosshair"
             )}
             style={{ maxHeight: "calc(100svh - 180px)" }}
