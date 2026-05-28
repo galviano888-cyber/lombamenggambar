@@ -797,8 +797,8 @@ function fallbackScore(metrics, drawingPrompt) {
 }
 
 // ─── Start Server ────────────────────────────────────────────────────────────
-server.listen(PORT, () => {
-  console.log(`\n🎮 DrawBattle Multiplayer Server running on http://localhost:${PORT}`);
+server.listen(PORT, "0.0.0.0", () => {
+  console.log(`\n🎮 DrawBattle Multiplayer Server running on port ${PORT}`);
   console.log(`   Gemini API: ${GEMINI_API_KEY ? "✅ Active" : "❌ Not configured (fallback mode)"}`);
   console.log(`   WebSocket: Ready for connections\n`);
 });
