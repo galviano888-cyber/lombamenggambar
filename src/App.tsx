@@ -34,14 +34,14 @@ const PLAYER_COLORS = {
 // ─── Countdown ───────────────────────────────────────────────────────────────
 function CountdownScreen({ count, prompt }: { count: number; prompt: string }) {
   return (
-    <div className="flex flex-col items-center justify-center min-h-[60vh] gap-8 select-none bg-gradient-to-b from-blue-400 to-blue-300">
-      <div className="pixel-md text-center text-primary" style={{ textShadow: "2px 2px 0 #000, -2px -2px 0 #fff" }}>
+    <div className="flex flex-col items-center justify-center min-h-[60vh] gap-8 select-none bg-gradient-to-b from-blue-400 to-blue-300 dark:from-blue-900 dark:to-blue-800">
+      <div className="pixel-md text-center text-primary dark:text-red-400" style={{ textShadow: "2px 2px 0 #000" }}>
         DRAW: {prompt.toUpperCase()}
       </div>
-      <div className="pixel-lg leading-none text-primary" style={{ fontSize: "8rem", textShadow: "4px 4px 0 #000, -2px -2px 0 #fff" }}>
+      <div className="pixel-lg leading-none text-primary dark:text-red-400" style={{ fontSize: "8rem", textShadow: "4px 4px 0 #000" }}>
         {count}
       </div>
-      <div className="pixel-md text-primary" style={{ textShadow: "2px 2px 0 #000" }}>GET READY!</div>
+      <div className="pixel-md text-primary dark:text-red-400" style={{ textShadow: "2px 2px 0 #000" }}>GET READY!</div>
     </div>
   )
 }
@@ -173,7 +173,7 @@ function RoomFormPanel({ onStart, socket }: { onStart: (role: PlayerRole) => voi
     "w-full border-4 border-black bg-white dark:bg-input text-foreground font-bold text-sm px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary placeholder:text-gray-400 dark:placeholder:text-gray-500 placeholder:font-normal"
 
   return (
-    <div className="w-full flex flex-col gap-0 border-4 border-black" style={{ boxShadow: "6px 6px 0 #000" }}>
+    <div className="w-full flex flex-col gap-0 border-4 border-black dark:border-border" style={{ boxShadow: "6px 6px 0 rgba(0,0,0,0.4)" }}>
       {/* ── Tab bar ── */}
       <div className="flex border-b-4 border-black">
         {(["create", "join"] as RoomTab[]).map((tab) => (
