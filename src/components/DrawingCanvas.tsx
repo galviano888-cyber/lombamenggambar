@@ -133,17 +133,13 @@ const DrawingCanvas = forwardRef<DrawingCanvasHandle, Props>(
     // ── Coordinate conversion helper ──
     const getCanvasPoint = useCallback((e: React.PointerEvent): Point => {
       const canvas = canvasRef.current!
-      const container = containerRef.current!
-      const rect = container.getBoundingClientRect()
-      const containerX = e.clientX - rect.left
-      const containerY = e.clientY - rect.top
-
-      // Convert screen coords to canvas coords accounting for zoom & pan
-      const canvasX = ((containerX - panX) / zoom) * (canvas.width / (rect.width / zoom))
-      const canvasY = ((containerY - panY) / zoom) * (canvas.height / (rect.height / zoom))
+      // Use canvas getBoundingClientRect directly — automatically accounts for zoom/pan transforms
+      const rect = canvas.getBoundingClientRect()
+      const canvasX = (e.clientX - rect.left) * (canvas.width / rect.width)
+      const canvasY = (e.clientY - rect.top) * (canvas.height / rect.height)
 
       return { x: canvasX, y: canvasY, pressure: e.pressure || 0.5 }
-    }, [zoom, panX, panY])
+    }, [])
 
     // ── Pointer Events (unified mouse/touch/stylus) ──
     const handlePointerDown = useCallback((e: React.PointerEvent) => {
