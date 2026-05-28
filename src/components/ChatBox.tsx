@@ -57,7 +57,7 @@ export function ChatBox({ socket }: { socket: Socket | null }) {
         >
           💬 Chat
           {messages.length > 0 && (
-            <span className="bg-white text-primary text-[10px] sm:text-xs px-1.5 py-0.5 border-2 border-black font-bold">
+            <span className="bg-white dark:bg-input text-primary text-[10px] sm:text-xs px-1.5 py-0.5 border-2 border-black font-bold">
               {messages.length}
             </span>
           )}
@@ -108,7 +108,7 @@ export function ChatBox({ socket }: { socket: Socket | null }) {
               onKeyDown={handleKeyDown}
               placeholder="Type a message..."
               maxLength={200}
-              className="flex-1 border-2 border-black bg-white text-xs px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-primary"
+              className="flex-1 border-2 border-black bg-white dark:bg-input dark:text-foreground text-xs px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-primary"
             />
             <button
               onClick={sendMessage}

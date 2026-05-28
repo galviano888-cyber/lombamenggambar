@@ -170,7 +170,7 @@ function RoomFormPanel({ onStart, socket }: { onStart: (role: PlayerRole) => voi
 
   // ── Shared input style ──────────────────────────────────────────────────────
   const inputCls =
-    "w-full border-4 border-black bg-white text-foreground font-bold text-sm px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary placeholder:text-gray-400 placeholder:font-normal"
+    "w-full border-4 border-black bg-white dark:bg-input text-foreground font-bold text-sm px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary placeholder:text-gray-400 dark:placeholder:text-gray-500 placeholder:font-normal"
 
   return (
     <div className="w-full flex flex-col gap-0 border-4 border-black" style={{ boxShadow: "6px 6px 0 #000" }}>
@@ -240,7 +240,7 @@ function RoomFormPanel({ onStart, socket }: { onStart: (role: PlayerRole) => voi
                     onChange={(e) => setDuration(Number(e.target.value))}
                     className="flex-1 h-2 accent-primary cursor-pointer"
                   />
-                  <span className="border-2 border-black bg-white px-3 py-1 text-sm font-bold min-w-[60px] text-center">
+                  <span className="border-2 border-black bg-white dark:bg-input px-3 py-1 text-sm font-bold min-w-[60px] text-center">
                     {Math.floor(duration / 60)}:{(duration % 60).toString().padStart(2, "0")}
                   </span>
                 </div>
@@ -258,7 +258,7 @@ function RoomFormPanel({ onStart, socket }: { onStart: (role: PlayerRole) => voi
                       onClick={() => setMaxPlayers(n)}
                       className={[
                         "flex-1 border-4 border-black py-2 text-sm font-bold transition-colors",
-                        maxPlayers === n ? "bg-primary text-primary-foreground" : "bg-white text-foreground hover:bg-accent",
+                        maxPlayers === n ? "bg-primary text-primary-foreground" : "bg-white dark:bg-input text-foreground hover:bg-accent",
                       ].join(" ")}
                     >
                       {n}
@@ -285,7 +285,7 @@ function RoomFormPanel({ onStart, socket }: { onStart: (role: PlayerRole) => voi
                       onClick={() => setCategory(cat.value)}
                       className={[
                         "border-3 border-black py-2 px-1 text-xs font-bold transition-colors",
-                        category === cat.value ? "bg-primary text-primary-foreground" : "bg-white text-foreground hover:bg-accent",
+                        category === cat.value ? "bg-primary text-primary-foreground" : "bg-white dark:bg-input text-foreground hover:bg-accent",
                       ].join(" ")}
                     >
                       {cat.label}
@@ -307,7 +307,7 @@ function RoomFormPanel({ onStart, socket }: { onStart: (role: PlayerRole) => voi
           {(roomStatus === "waiting" || roomStatus === "ready") && (
             <div className="flex flex-col gap-4">
               {/* Room code display */}
-              <div className="border-4 border-black bg-white p-4 flex flex-col items-center gap-2" style={{ boxShadow: "4px 4px 0 #000" }}>
+              <div className="border-4 border-black bg-white dark:bg-card p-4 flex flex-col items-center gap-2" style={{ boxShadow: "4px 4px 0 #000" }}>
                 <div className="text-xs font-bold text-muted-foreground uppercase">Share this code with others</div>
                 <div className="pixel-md text-primary" style={{ letterSpacing: "0.15em", textShadow: "2px 2px 0 #000" }}>
                   {roomCode}
@@ -316,7 +316,7 @@ function RoomFormPanel({ onStart, socket }: { onStart: (role: PlayerRole) => voi
               </div>
 
               {/* Player list */}
-              <div className="border-4 border-black bg-white p-3 flex flex-col gap-2">
+              <div className="border-4 border-black bg-white dark:bg-card p-3 flex flex-col gap-2">
                 <div className="text-xs font-bold text-muted-foreground uppercase">Players ({players.length}/{maxPlayers})</div>
                 {players.map((p, i) => (
                   <div key={i} className="flex items-center gap-2 border-2 border-black p-2 bg-accent">
@@ -491,7 +491,7 @@ function LobbyScreen({ onStart, socket }: { onStart: (role: PlayerRole) => void;
           </div>
 
           {/* Tagline */}
-          <div className="border-4 border-black bg-white/90 px-4 sm:px-6 py-2 sm:py-3" style={{ boxShadow: "4px 4px 0 rgba(0,0,0,0.3)" }}>
+          <div className="border-4 border-black bg-white/90 dark:bg-card/90 px-4 sm:px-6 py-2 sm:py-3" style={{ boxShadow: "4px 4px 0 rgba(0,0,0,0.3)" }}>
             <p className="text-sm sm:text-base font-bold text-foreground leading-relaxed">
               Two players. One prompt. Draw and compete!
               <br />
@@ -587,7 +587,7 @@ function ResultScreen({
             </div>
             {/* Drawing thumbnail */}
             {player.drawingDataUrl && (
-              <div className="border-2 border-black bg-white shrink-0 hidden sm:block">
+              <div className="border-2 border-black bg-white dark:bg-input shrink-0 hidden sm:block">
                 <img src={player.drawingDataUrl} alt={`${player.name}'s drawing`} className="w-16 h-12 object-contain" />
               </div>
             )}
@@ -615,7 +615,7 @@ function ResultScreen({
               { label: "Quality", key: "quality" as const, color: "#43B047" },
               { label: "Match", key: "prompt_match" as const, color: "#E52521" },
             ].map((cat) => (
-              <div key={cat.key} className="border-2 border-black p-2 bg-white">
+              <div key={cat.key} className="border-2 border-black p-2 bg-white dark:bg-input">
                 <div className="text-xs font-bold" style={{ color: cat.color }}>{cat.label}</div>
                 <div className="flex flex-col gap-1 mt-1">
                   {ranked.map((p, i) => (

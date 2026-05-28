@@ -161,7 +161,7 @@ const DrawingCanvas = forwardRef<DrawingCanvasHandle, Props>(
         </div>
 
         {/* Canvas */}
-        <div className="relative border-4 border-black bg-white overflow-hidden" style={{ boxShadow: "6px 6px 0 rgba(0,0,0,0.3)" }}>
+        <div className="relative border-4 border-black bg-white dark:bg-gray-100 overflow-hidden" style={{ boxShadow: "6px 6px 0 rgba(0,0,0,0.3)" }}>
           <canvas
             ref={canvasRef}
             width={600}
