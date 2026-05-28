@@ -123,15 +123,27 @@ const DrawingCanvas = forwardRef<DrawingCanvasHandle, Props>(
 
       ctx.lineWidth = dynamicWidth
 
-      // Midpoint Quadratic Bezier for smooth curves
-      const midX = (from.x + to.x) / 2
-      const midY = (from.y + to.y) / 2
-
+      // Direct line to point (more reliable than Bezier for continuous strokes)
       ctx.beginPath()
       ctx.moveTo(from.x, from.y)
-      ctx.quadraticCurveTo(from.x, from.y, midX, midY)
+      ctx.lineTo(to.x, to.y)
       ctx.stroke()
     }, [color, brushSize, isEraser])
+
+    // ── Coordinate conversion helper ──
+    const getCanvasPoint = useCallback((e: React.PointerEvent): Point => {
+      const canvas = canvasRef.current!
+      const container = containerRef.current!
+      const rect = container.getBoundingClientRect()
+      const containerX = e.clientX - rect.left
+      const containerY = e.clientY - rect.top
+
+      // Convert screen coords to canvas coords accounting for zoom & pan
+      const canvasX = ((containerX - panX) / zoom) * (canvas.width / (rect.width / zoom))
+      const canvasY = ((containerY - panY) / zoom) * (canvas.height / (rect.height / zoom))
+
+      return { x: canvasX, y: canvasY, pressure: e.pressure || 0.5 }
+    }, [zoom, panX, panY])
 
     // ── Pointer Events (unified mouse/touch/stylus) ──
     const handlePointerDown = useCallback((e: React.PointerEvent) => {
@@ -144,39 +156,17 @@ const DrawingCanvas = forwardRef<DrawingCanvasHandle, Props>(
         historySaved.current = true
       }
 
-      const canvas = canvasRef.current!
-      const container = containerRef.current!
-      const rect = container.getBoundingClientRect()
-      const containerX = e.clientX - rect.left
-      const containerY = e.clientY - rect.top
-      const scaleX = canvas.width / rect.width
-      const scaleY = canvas.height / rect.height
-
-      const realX = ((containerX - panX) / zoom) * scaleX
-      const realY = ((containerY - panY) / zoom) * scaleY
-
-      const point: Point = { x: realX, y: realY, pressure: e.pressure || 0.5 }
+      const point = getCanvasPoint(e)
       lastPoint.current = point
       points.current = [point]
       isDrawing.current = true
-    }, [disabled, zoom, panX, panY, saveHistory])
+    }, [disabled, saveHistory, getCanvasPoint])
 
     const handlePointerMove = useCallback((e: React.PointerEvent) => {
       if (!isDrawing.current || disabled || isPinching.current) return
       e.preventDefault()
 
-      const canvas = canvasRef.current!
-      const container = containerRef.current!
-      const rect = container.getBoundingClientRect()
-      const containerX = e.clientX - rect.left
-      const containerY = e.clientY - rect.top
-      const scaleX = canvas.width / rect.width
-      const scaleY = canvas.height / rect.height
-
-      const realX = ((containerX - panX) / zoom) * scaleX
-      const realY = ((containerY - panY) / zoom) * scaleY
-
-      const point: Point = { x: realX, y: realY, pressure: e.pressure || 0.5 }
+      const point = getCanvasPoint(e)
 
       if (lastPoint.current) {
         drawStroke(lastPoint.current, point)
@@ -184,7 +174,7 @@ const DrawingCanvas = forwardRef<DrawingCanvasHandle, Props>(
 
       lastPoint.current = point
       points.current.push(point)
-    }, [disabled, zoom, panX, panY, drawStroke])
+    }, [disabled, drawStroke, getCanvasPoint])
 
     const handlePointerUp = useCallback((e: React.PointerEvent) => {
       e.currentTarget.releasePointerCapture(e.pointerId)
@@ -283,7 +273,7 @@ const DrawingCanvas = forwardRef<DrawingCanvasHandle, Props>(
         <div className="relative">
           <div
             ref={containerRef}
-            className="relative border-4 border-black bg-white dark:bg-gray-100 overflow-hidden sm:aspect-[3/2] touch-none"
+            className="relative border-4 border-black bg-black overflow-hidden sm:aspect-[3/2] touch-none"
             style={{ boxShadow: "4px 4px 0 rgba(0,0,0,0.3)" }}
             onWheel={handleWheel}
             onTouchStart={handleTouchStart}
