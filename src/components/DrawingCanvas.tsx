@@ -167,9 +167,10 @@ const DrawingCanvas = forwardRef<DrawingCanvasHandle, Props>(
             width={600}
             height={400}
             className={cn(
-              "w-full touch-none block",
+              "w-full touch-none block aspect-[3/2] sm:aspect-[3/2]",
               disabled ? "opacity-50 cursor-not-allowed pointer-events-none" : "cursor-crosshair"
             )}
+            style={{ maxHeight: "calc(100svh - 220px)" }}
             onMouseDown={startDraw}
             onMouseMove={draw}
             onMouseUp={stopDraw}
@@ -188,7 +189,7 @@ const DrawingCanvas = forwardRef<DrawingCanvasHandle, Props>(
         </div>
 
         {/* Toolbar */}
-        <div className="flex flex-wrap items-center gap-2 border-4 border-black bg-card p-3">
+        <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 border-4 border-black bg-card p-2 sm:p-3">
           <TooltipProvider>
             {/* Tool buttons */}
             <Tooltip>
@@ -243,14 +244,14 @@ const DrawingCanvas = forwardRef<DrawingCanvasHandle, Props>(
             <div className="border-r-2 border-black h-6" />
 
             {/* Color palette */}
-            <div className="flex flex-wrap gap-1">
+            <div className="flex flex-wrap gap-0.5 sm:gap-1">
               {COLORS.map((c) => (
                 <button
                   key={c}
                   disabled={disabled}
                   onClick={() => { setColor(c); setIsEraser(false) }}
                   className={cn(
-                    "size-6 border-2 transition-transform hover:scale-110 focus:outline-none",
+                    "size-5 sm:size-6 border-2 transition-transform hover:scale-110 focus:outline-none",
                     color === c && !isEraser ? "border-black scale-110 ring-2 ring-primary" : "border-black"
                   )}
                   style={{ backgroundColor: c }}
