@@ -654,6 +654,7 @@ function PunishmentScreen({
   onPlayAgain,
   isHost,
   isLoser,
+  isTie,
 }: {
   punishment: PunishmentCard | null
   rerollsLeft: number
@@ -661,7 +662,38 @@ function PunishmentScreen({
   onPlayAgain: () => void
   isHost: boolean
   isLoser: boolean
+  isTie: boolean
 }) {
+  // Tie — no punishment
+  if (isTie) {
+    return (
+      <div className="flex flex-col gap-4 sm:gap-8 max-w-2xl mx-auto">
+        <div className="text-center flex flex-col items-center gap-3 sm:gap-4">
+          <div className="flex items-center justify-center size-14 sm:size-20 border-4 border-black bg-accent" style={{ boxShadow: "6px 6px 0 rgba(0,0,0,0.3)" }}>
+            <span className="text-2xl sm:text-4xl">🤝</span>
+          </div>
+          <h2 className="pixel-md sm:pixel-lg text-primary" style={{ textShadow: "3px 3px 0 #000" }}>
+            SERI!
+          </h2>
+          <p className="text-xs sm:text-sm font-bold text-foreground">
+            Tidak ada hukuman kali ini. Semua pemain selamat!
+          </p>
+        </div>
+        {isHost ? (
+          <button onClick={onPlayAgain} className="arcade-btn w-full bg-secondary text-secondary-foreground text-base sm:text-lg py-3 sm:py-4 font-bold uppercase gap-2 flex items-center justify-center">
+            <RefreshCw className="size-4 sm:size-5" />
+            Play Again
+          </button>
+        ) : (
+          <div className="flex items-center justify-center gap-2 sm:gap-3 border-4 border-black bg-accent p-3 sm:p-4">
+            <div className="size-2.5 sm:size-3 rounded-full bg-primary animate-pulse border-2 border-black shrink-0" />
+            <span className="text-[10px] sm:text-sm font-bold text-foreground uppercase">Waiting for host...</span>
+          </div>
+        )}
+      </div>
+    )
+  }
+
   return (
     <div className="flex flex-col gap-4 sm:gap-8 max-w-2xl mx-auto">
       {/* Header */}
@@ -946,15 +978,19 @@ export function App() {
     if (!socket || !result) return
     const ranked = result.ranked
     if (ranked.length < 2) return
-    // Check tie between last two
+    
+    // Check tie
     if (ranked[0].total === ranked[ranked.length - 1].total) {
-      playAgain()
+      // Tie — no punishment, show message then let host play again
+      setLoserIndex(null)
+      setPunishment(null)
+      setPhase("punishment") // will show "tie" message
       return
     }
+    
     const loser = ranked[ranked.length - 1] // lowest score
-    setLoserIndex(loser.index)
     socket.emit("request_punishment", { loserIndex: loser.index })
-  }, [socket, result, playAgain])
+  }, [socket, result])
 
   const rerollPunishment = useCallback(() => {
     if (!socket || rerollsLeft <= 0) return
@@ -1032,6 +1068,7 @@ export function App() {
             onPlayAgain={playAgain}
             isHost={playerRole === "host"}
             isLoser={loserIndex === playerIndex}
+            isTie={loserIndex === null}
           />
         )}
       </main>
