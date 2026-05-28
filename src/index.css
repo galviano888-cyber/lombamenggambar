@@ -1,0 +1,327 @@
+@import url("https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap");
+@import "tailwindcss";
+@import "tw-animate-css";
+
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+}
+
+/*
+  ============================================================
+  THEME CONFIGURATION
+  ============================================================
+
+  Theme: neutral (default)
+  Mode:  light (:root) / dark (.dark)
+
+  To switch to dark mode by default, change the ThemeProvider
+  defaultTheme prop in src/main.tsx:
+    <ThemeProvider defaultTheme="dark">
+
+  To change theme colors, replace the OKLCH values below.
+  Visit https://ui.shadcn.com/themes to generate theme CSS.
+
+  To change the base color palette (e.g. stone, zinc, gray),
+  re-initialize with the shadcn CLI:
+    npx shadcn@latest init -t vite --preset nova -y -f
+    npx shadcn@latest init -t vite --preset vega -y -f
+
+  Available presets: nova, vega, maia, lyra, mira
+  Available base colors: neutral, stone, zinc, gray, mauve,
+                         olive, mist, taupe
+
+  CLI non-interactive theme change:
+    npx shadcn@latest init -t vite -d -y -f
+  ============================================================
+*/
+
+:root {
+  --radius: 0px;
+  --mario-red: #E52521;
+  --mario-green: #43B047;
+  --mario-blue: #5C94FC;
+  --mario-yellow: #FBD000;
+  --mario-brown: #B83000;
+  --mario-black: #202020;
+  --mario-white: #FFFFFF;
+  --mario-gold: #D4AF37;
+
+  --background: #5C94FC;
+  --foreground: #202020;
+  --card: #FBD000;
+  --card-foreground: #202020;
+  --popover: #FFFFFF;
+  --popover-foreground: #202020;
+  --primary: #E52521;
+  --primary-foreground: #FFFFFF;
+  --secondary: #43B047;
+  --secondary-foreground: #FFFFFF;
+  --muted: #B83000;
+  --muted-foreground: #4a4a4a;
+  --accent: #FBD000;
+  --accent-foreground: #202020;
+  --destructive: #E52521;
+  --destructive-foreground: #FFFFFF;
+  --border: #202020;
+  --input: #FFFFFF;
+  --ring: #E52521;
+  --chart-1: #E52521;
+  --chart-2: #43B047;
+  --chart-3: #FBD000;
+  --chart-4: #5C94FC;
+  --chart-5: #B83000;
+  --sidebar: #202020;
+  --sidebar-foreground: #FFFFFF;
+  --sidebar-primary: #E52521;
+  --sidebar-primary-foreground: #FFFFFF;
+  --sidebar-accent: #FBD000;
+  --sidebar-accent-foreground: #202020;
+  --sidebar-border: #FFFFFF;
+  --sidebar-ring: #E52521;
+}
+
+.dark {
+  --background: #202020;
+  --foreground: #FFFFFF;
+  --card: #404040;
+  --card-foreground: #FFFFFF;
+  --popover: #202020;
+  --popover-foreground: #FFFFFF;
+  --primary: #E52521;
+  --primary-foreground: #FFFFFF;
+  --secondary: #43B047;
+  --secondary-foreground: #FFFFFF;
+  --muted: #B83000;
+  --muted-foreground: #FFFFFF;
+  --accent: #FBD000;
+  --accent-foreground: #202020;
+  --destructive: #E52521;
+  --destructive-foreground: #FFFFFF;
+  --border: #FFFFFF;
+  --input: #404040;
+  --ring: #FBD000;
+  --chart-1: #E52521;
+  --chart-2: #43B047;
+  --chart-3: #FBD000;
+  --chart-4: #5C94FC;
+  --chart-5: #B83000;
+  --sidebar: #202020;
+  --sidebar-foreground: #FFFFFF;
+  --sidebar-primary: #E52521;
+  --sidebar-primary-foreground: #FFFFFF;
+  --sidebar-accent: #FBD000;
+  --sidebar-accent-foreground: #202020;
+  --sidebar-border: #FFFFFF;
+  --sidebar-ring: #FBD000;
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+  /* 8-bit pixel font for titles and scores */
+  .pixel-title {
+    font-family: "Press Start 2P", cursive;
+    font-size: 1.5rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+  .pixel-lg {
+    font-family: "Press Start 2P", cursive;
+    font-size: 2rem;
+    letter-spacing: 0.08em;
+  }
+  .pixel-md {
+    font-family: "Press Start 2P", cursive;
+    font-size: 1rem;
+    letter-spacing: 0.05em;
+  }
+  .pixel-sm {
+    font-family: "Press Start 2P", cursive;
+    font-size: 0.75rem;
+    letter-spacing: 0.05em;
+  }
+  /* Retro arcade block button effect */
+  .arcade-btn {
+    @apply border-4 border-black font-bold text-base rounded-none shadow-[4px_4px_0px_rgba(0,0,0,0.5)] active:shadow-none active:translate-y-1;
+    font-family: system-ui, -apple-system, sans-serif;
+  }
+}
+
+/* ─── Paint / Ink Lobby Animations ─────────────────────────────────────────── */
+
+@keyframes float {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  25% { transform: translateY(-12px) rotate(3deg); }
+  50% { transform: translateY(-6px) rotate(-2deg); }
+  75% { transform: translateY(-15px) rotate(2deg); }
+}
+
+@keyframes float-slow {
+  0%, 100% { transform: translateY(0) rotate(0deg) scale(1); }
+  50% { transform: translateY(-20px) rotate(5deg) scale(1.05); }
+}
+
+@keyframes drip {
+  0% { transform: scaleY(0); opacity: 0; }
+  20% { transform: scaleY(0.3); opacity: 1; }
+  80% { transform: scaleY(1); opacity: 1; }
+  100% { transform: scaleY(1.1); opacity: 0.6; }
+}
+
+@keyframes splat {
+  0% { transform: scale(0) rotate(0deg); opacity: 0; }
+  50% { transform: scale(1.2) rotate(180deg); opacity: 0.8; }
+  100% { transform: scale(1) rotate(360deg); opacity: 0.6; }
+}
+
+@keyframes paint-stroke {
+  0% { width: 0; opacity: 0; }
+  30% { opacity: 1; }
+  100% { width: 100%; opacity: 0.7; }
+}
+
+@keyframes bounce-in {
+  0% { transform: scale(0) rotate(-10deg); }
+  50% { transform: scale(1.15) rotate(3deg); }
+  70% { transform: scale(0.95) rotate(-1deg); }
+  100% { transform: scale(1) rotate(0deg); }
+}
+
+@keyframes wiggle {
+  0%, 100% { transform: rotate(-3deg); }
+  50% { transform: rotate(3deg); }
+}
+
+@keyframes color-cycle {
+  0% { color: #E52521; }
+  25% { color: #43B047; }
+  50% { color: #5C94FC; }
+  75% { color: #FBD000; }
+  100% { color: #E52521; }
+}
+
+.animate-float {
+  animation: float 4s ease-in-out infinite;
+}
+
+.animate-float-slow {
+  animation: float-slow 6s ease-in-out infinite;
+}
+
+.animate-drip {
+  animation: drip 3s ease-in-out infinite;
+  transform-origin: top center;
+}
+
+.animate-splat {
+  animation: splat 2s ease-out forwards;
+}
+
+.animate-paint-stroke {
+  animation: paint-stroke 2s ease-out forwards;
+}
+
+.animate-bounce-in {
+  animation: bounce-in 0.6s ease-out forwards;
+}
+
+.animate-wiggle {
+  animation: wiggle 2s ease-in-out infinite;
+}
+
+.animate-color-cycle {
+  animation: color-cycle 8s linear infinite;
+}
+
+/* Paint splatter shapes */
+.paint-splat {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(1px);
+  pointer-events: none;
+}
+
+.paint-splat::before {
+  content: '';
+  position: absolute;
+  width: 60%;
+  height: 60%;
+  border-radius: 50%;
+  background: inherit;
+  top: -20%;
+  left: 30%;
+}
+
+.paint-splat::after {
+  content: '';
+  position: absolute;
+  width: 40%;
+  height: 40%;
+  border-radius: 50%;
+  background: inherit;
+  bottom: -10%;
+  right: -10%;
+}
+
+/* Ink drip effect */
+.ink-drip {
+  position: absolute;
+  width: 6px;
+  border-radius: 0 0 50% 50%;
+  pointer-events: none;
+  transform-origin: top center;
+}
+
+.ink-drip::after {
+  content: '';
+  position: absolute;
+  bottom: -6px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: inherit;
+}
