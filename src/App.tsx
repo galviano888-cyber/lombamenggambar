@@ -555,6 +555,7 @@ function ResultScreen({
   const ranked = result.ranked
   const winner = ranked[0]
   const tied = ranked.length >= 2 && ranked[0].total === ranked[1].total
+  const [viewDrawing, setViewDrawing] = useState<{ name: string; url: string } | null>(null)
 
   return (
     <div className="flex flex-col gap-4 sm:gap-8 max-w-4xl mx-auto">
@@ -574,27 +575,33 @@ function ResultScreen({
         </Badge>
       </div>
 
-      {/* Ranked results */}
+      {/* Ranked results — click to view drawing */}
       <div className="flex flex-col gap-2 sm:gap-4">
         {ranked.map((player, i) => (
-          <div key={player.index} className={[
-            "border-3 sm:border-4 border-black p-2.5 sm:p-4 flex items-center gap-2 sm:gap-4",
-            i === 0 ? "bg-accent" : "bg-card",
-          ].join(" ")} style={{ boxShadow: i === 0 ? "4px 4px 0 rgba(0,0,0,0.3)" : "3px 3px 0 rgba(0,0,0,0.2)" }}>
+          <div
+            key={player.index}
+            onClick={() => player.drawingDataUrl && setViewDrawing({ name: player.name, url: player.drawingDataUrl })}
+            className={[
+              "border-3 sm:border-4 border-black p-2.5 sm:p-4 flex items-center gap-2 sm:gap-4 cursor-pointer hover:translate-y-[-2px] transition-transform",
+              i === 0 ? "bg-accent" : "bg-card",
+            ].join(" ")}
+            style={{ boxShadow: i === 0 ? "4px 4px 0 rgba(0,0,0,0.3)" : "3px 3px 0 rgba(0,0,0,0.2)" }}
+          >
             {/* Rank */}
             <div className="pixel-sm sm:pixel-md text-primary shrink-0 w-8 sm:w-10 text-center" style={{ textShadow: "1px 1px 0 #000" }}>
               {i === 0 ? "👑" : `#${i + 1}`}
             </div>
             {/* Drawing thumbnail */}
             {player.drawingDataUrl && (
-              <div className="border-2 border-black bg-white dark:bg-input shrink-0 hidden sm:block">
-                <img src={player.drawingDataUrl} alt={`${player.name}'s drawing`} className="w-16 h-12 object-contain" />
+              <div className="border-2 border-black bg-white shrink-0">
+                <img src={player.drawingDataUrl} alt={`${player.name}'s drawing`} className="w-12 h-12 sm:w-16 sm:h-12 object-contain" />
               </div>
             )}
             {/* Player info */}
             <div className="flex-1 min-w-0">
               <div className="font-bold text-foreground text-xs sm:text-sm truncate">{player.name}</div>
               <div className="text-[10px] sm:text-xs text-gray-500 dark:text-gray-400 font-medium italic truncate">{player.score.critique}</div>
+              <div className="text-[9px] text-primary font-bold mt-0.5">Tap to view drawing</div>
             </div>
             {/* Score */}
             <div className="pixel-sm sm:pixel-md tabular-nums text-primary shrink-0" style={{ textShadow: "1px 1px 0 #000" }}>
@@ -640,6 +647,31 @@ function ResultScreen({
         <div className="flex items-center justify-center gap-3 border-4 border-black bg-accent p-4">
           <div className="size-3 rounded-full bg-primary animate-pulse border-2 border-black shrink-0" />
           <span className="text-sm font-bold text-foreground uppercase">Waiting for host...</span>
+        </div>
+      )}
+
+      {/* Drawing viewer modal */}
+      {viewDrawing && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4"
+          onClick={() => setViewDrawing(null)}
+        >
+          <div className="relative max-w-lg w-full bg-white dark:bg-card border-4 border-black p-2" onClick={(e) => e.stopPropagation()} style={{ boxShadow: "6px 6px 0 rgba(0,0,0,0.4)" }}>
+            <div className="flex items-center justify-between px-2 py-1 mb-2 border-b-2 border-black">
+              <span className="font-bold text-sm text-foreground">{viewDrawing.name}</span>
+              <button
+                onClick={() => setViewDrawing(null)}
+                className="text-foreground font-bold text-lg hover:text-primary"
+              >
+                ✕
+              </button>
+            </div>
+            <img
+              src={viewDrawing.url}
+              alt={`${viewDrawing.name}'s drawing`}
+              className="w-full h-auto border-2 border-black bg-white"
+            />
+          </div>
         </div>
       )}
     </div>
