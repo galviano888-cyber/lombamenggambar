@@ -1,7 +1,11 @@
 import { io, Socket } from "socket.io-client";
 
-// Automatically use the same hostname as the page (works for both localhost and LAN IP)
-const SERVER_URL = import.meta.env.VITE_SERVER_URL || `http://${window.location.hostname}:3001`;
+// In production, use VITE_SERVER_URL env var pointing to deployed backend
+// In development, auto-detect from current hostname (works for LAN)
+const SERVER_URL = import.meta.env.VITE_SERVER_URL || 
+  (window.location.hostname === "localhost" || window.location.hostname.startsWith("192.168")
+    ? `http://${window.location.hostname}:3001`
+    : `https://${window.location.hostname.replace('.vercel.app', '-server.up.railway.app')}`);
 
 let socket: Socket | null = null;
 
