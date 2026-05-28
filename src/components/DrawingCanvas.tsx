@@ -1,8 +1,6 @@
 import { useRef, useEffect, useState, useCallback, forwardRef, useImperativeHandle } from "react"
-import { Slider } from "@/components/ui/slider"
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { cn } from "@/lib/utils"
-import { Eraser, Pencil, Trash2, Undo2, ZoomIn, ZoomOut, Hand } from "lucide-react"
+import { Eraser, Pencil, Trash2, Undo2, ZoomIn, ZoomOut, RotateCcw } from "lucide-react"
 
 const COLORS = [
   "#000000", "#ffffff", "#ef4444", "#f97316", "#eab308",
@@ -24,26 +22,44 @@ interface Props {
   className?: string
 }
 
+interface Point {
+  x: number
+  y: number
+  pressure: number
+}
+
 const DrawingCanvas = forwardRef<DrawingCanvasHandle, Props>(
   ({ playerName, playerColor, disabled = false, disabledReason = "time", className }, ref) => {
     const canvasRef = useRef<HTMLCanvasElement>(null)
-    const wrapperRef = useRef<HTMLDivElement>(null)
-    const [isDrawing, setIsDrawing] = useState(false)
+    const containerRef = useRef<HTMLDivElement>(null)
+
+    // Drawing state
     const [color, setColor] = useState("#000000")
     const [brushSize, setBrushSize] = useState(6)
     const [isEraser, setIsEraser] = useState(false)
     const [history, setHistory] = useState<ImageData[]>([])
-    const lastPoint = useRef<{ x: number; y: number } | null>(null)
+    const [showColors, setShowColors] = useState(false)
 
     // Zoom & Pan state
     const [zoom, setZoom] = useState(1)
-    const [pan, setPan] = useState({ x: 0, y: 0 })
-    const [mode, setMode] = useState<"draw" | "zoom">("draw")
-    const pinchStartDist = useRef<number | null>(null)
-    const pinchStartZoom = useRef(1)
-    const panStart = useRef<{ x: number; y: number } | null>(null)
-    const panStartOffset = useRef({ x: 0, y: 0 })
+    const [panX, setPanX] = useState(0)
+    const [panY, setPanY] = useState(0)
 
+    // Refs for gesture handling
+    const isDrawing = useRef(false)
+    const lastPoint = useRef<Point | null>(null)
+    const points = useRef<Point[]>([])
+    const isPinching = useRef(false)
+    const pinchStartDist = useRef(0)
+    const pinchStartZoom = useRef(1)
+    const pinchMidpoint = useRef({ x: 0, y: 0 })
+    const panStartX = useRef(0)
+    const panStartY = useRef(0)
+    const panOffsetX = useRef(0)
+    const panOffsetY = useRef(0)
+    const historySaved = useRef(false)
+
+    // ── Imperative handle for parent ──
     useImperativeHandle(ref, () => ({
       getDataUrl: () => canvasRef.current?.toDataURL("image/png") ?? "",
       clear: () => {
@@ -57,6 +73,7 @@ const DrawingCanvas = forwardRef<DrawingCanvasHandle, Props>(
       },
     }))
 
+    // ── Init canvas ──
     useEffect(() => {
       const canvas = canvasRef.current
       if (!canvas) return
@@ -66,13 +83,14 @@ const DrawingCanvas = forwardRef<DrawingCanvasHandle, Props>(
       ctx.fillRect(0, 0, canvas.width, canvas.height)
     }, [])
 
+    // ── History management ──
     const saveHistory = useCallback(() => {
       const canvas = canvasRef.current
       if (!canvas) return
       const ctx = canvas.getContext("2d")
       if (!ctx) return
       const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height)
-      setHistory((prev) => [...prev.slice(-19), imageData])
+      setHistory((prev) => [...prev.slice(-29), imageData])
     }, [])
 
     const undo = useCallback(() => {
@@ -85,316 +103,303 @@ const DrawingCanvas = forwardRef<DrawingCanvasHandle, Props>(
       setHistory((h) => h.slice(0, -1))
     }, [history])
 
-    const getPos = (
-      e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>
-    ): { x: number; y: number } => {
+    // ── Smooth Bezier drawing ──
+    const drawStroke = useCallback((from: Point, to: Point) => {
+      const canvas = canvasRef.current
+      if (!canvas) return
+      const ctx = canvas.getContext("2d")
+      if (!ctx) return
+
+      ctx.globalCompositeOperation = isEraser ? "destination-out" : "source-over"
+      ctx.strokeStyle = isEraser ? "rgba(0,0,0,1)" : color
+      ctx.lineCap = "round"
+      ctx.lineJoin = "round"
+
+      // Pressure-sensitive line width
+      const pressure = to.pressure || 0.5
+      const dynamicWidth = isEraser
+        ? brushSize * 3
+        : brushSize * (0.5 + pressure * 0.8)
+
+      ctx.lineWidth = dynamicWidth
+
+      // Midpoint Quadratic Bezier for smooth curves
+      const midX = (from.x + to.x) / 2
+      const midY = (from.y + to.y) / 2
+
+      ctx.beginPath()
+      ctx.moveTo(from.x, from.y)
+      ctx.quadraticCurveTo(from.x, from.y, midX, midY)
+      ctx.stroke()
+    }, [color, brushSize, isEraser])
+
+    // ── Pointer Events (unified mouse/touch/stylus) ──
+    const handlePointerDown = useCallback((e: React.PointerEvent) => {
+      if (disabled || isPinching.current) return
+      e.preventDefault()
+      e.currentTarget.setPointerCapture(e.pointerId)
+
+      if (!historySaved.current) {
+        saveHistory()
+        historySaved.current = true
+      }
+
       const canvas = canvasRef.current!
-      const rect = canvas.getBoundingClientRect()
+      const container = containerRef.current!
+      const rect = container.getBoundingClientRect()
+      const containerX = e.clientX - rect.left
+      const containerY = e.clientY - rect.top
       const scaleX = canvas.width / rect.width
       const scaleY = canvas.height / rect.height
 
-      if ("touches" in e) {
-        const touch = e.touches[0] ?? e.changedTouches[0]
-        return {
-          x: (touch.clientX - rect.left) * scaleX,
-          y: (touch.clientY - rect.top) * scaleY,
-        }
+      const realX = ((containerX - panX) / zoom) * scaleX
+      const realY = ((containerY - panY) / zoom) * scaleY
+
+      const point: Point = { x: realX, y: realY, pressure: e.pressure || 0.5 }
+      lastPoint.current = point
+      points.current = [point]
+      isDrawing.current = true
+    }, [disabled, zoom, panX, panY, saveHistory])
+
+    const handlePointerMove = useCallback((e: React.PointerEvent) => {
+      if (!isDrawing.current || disabled || isPinching.current) return
+      e.preventDefault()
+
+      const canvas = canvasRef.current!
+      const container = containerRef.current!
+      const rect = container.getBoundingClientRect()
+      const containerX = e.clientX - rect.left
+      const containerY = e.clientY - rect.top
+      const scaleX = canvas.width / rect.width
+      const scaleY = canvas.height / rect.height
+
+      const realX = ((containerX - panX) / zoom) * scaleX
+      const realY = ((containerY - panY) / zoom) * scaleY
+
+      const point: Point = { x: realX, y: realY, pressure: e.pressure || 0.5 }
+
+      if (lastPoint.current) {
+        drawStroke(lastPoint.current, point)
       }
-      return {
-        x: (e.clientX - rect.left) * scaleX,
-        y: (e.clientY - rect.top) * scaleY,
-      }
-    }
 
-    const startDraw = useCallback(
-      (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
-        if (disabled) return
-        e.preventDefault()
-        saveHistory()
-        const pos = getPos(e)
-        const canvas = canvasRef.current
-        if (!canvas) return
-        const ctx = canvas.getContext("2d")
-        if (!ctx) return
-        ctx.beginPath()
-        ctx.moveTo(pos.x, pos.y)
-        lastPoint.current = pos
-        setIsDrawing(true)
-      },
-      [disabled, saveHistory]
-    )
+      lastPoint.current = point
+      points.current.push(point)
+    }, [disabled, zoom, panX, panY, drawStroke])
 
-    const draw = useCallback(
-      (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
-        if (!isDrawing || disabled) return
-        e.preventDefault()
-        const canvas = canvasRef.current
-        if (!canvas) return
-        const ctx = canvas.getContext("2d")
-        if (!ctx) return
-        const pos = getPos(e)
-        const last = lastPoint.current ?? pos
-
-        ctx.globalCompositeOperation = isEraser ? "destination-out" : "source-over"
-        ctx.strokeStyle = isEraser ? "rgba(0,0,0,1)" : color
-        ctx.lineWidth = isEraser ? brushSize * 3 : brushSize
-        ctx.lineCap = "round"
-        ctx.lineJoin = "round"
-
-        // Smooth curve through midpoints
-        const midX = (last.x + pos.x) / 2
-        const midY = (last.y + pos.y) / 2
-        ctx.beginPath()
-        ctx.moveTo(last.x, last.y)
-        ctx.quadraticCurveTo(last.x, last.y, midX, midY)
-        ctx.stroke()
-
-        lastPoint.current = pos
-      },
-      [isDrawing, disabled, color, brushSize, isEraser]
-    )
-
-    const stopDraw = useCallback(() => {
-      setIsDrawing(false)
+    const handlePointerUp = useCallback((e: React.PointerEvent) => {
+      e.currentTarget.releasePointerCapture(e.pointerId)
+      isDrawing.current = false
       lastPoint.current = null
+      points.current = []
+      historySaved.current = false
     }, [])
 
-    // ── Zoom & Pan handlers ──
+    // ── Touch Events for Pinch-to-Zoom & Pan (2 fingers) ──
+    const handleTouchStart = useCallback((e: React.TouchEvent) => {
+      if (disabled) return
+
+      if (e.touches.length === 2) {
+        // 2 fingers → zoom/pan mode
+        e.preventDefault()
+        isPinching.current = true
+        isDrawing.current = false
+        lastPoint.current = null
+
+        const t1 = e.touches[0]
+        const t2 = e.touches[1]
+        const dx = t1.clientX - t2.clientX
+        const dy = t1.clientY - t2.clientY
+        pinchStartDist.current = Math.sqrt(dx * dx + dy * dy)
+        pinchStartZoom.current = zoom
+        pinchMidpoint.current = {
+          x: (t1.clientX + t2.clientX) / 2,
+          y: (t1.clientY + t2.clientY) / 2,
+        }
+        panStartX.current = pinchMidpoint.current.x
+        panStartY.current = pinchMidpoint.current.y
+        panOffsetX.current = panX
+        panOffsetY.current = panY
+      }
+      // 1 finger → handled by pointer events (draw)
+    }, [disabled, zoom, panX, panY])
+
+    const handleTouchMove = useCallback((e: React.TouchEvent) => {
+      if (!isPinching.current || e.touches.length < 2) return
+      e.preventDefault()
+
+      const t1 = e.touches[0]
+      const t2 = e.touches[1]
+
+      // Calculate new zoom from pinch distance
+      const dx = t1.clientX - t2.clientX
+      const dy = t1.clientY - t2.clientY
+      const dist = Math.sqrt(dx * dx + dy * dy)
+      const newZoom = Math.min(5, Math.max(0.5, pinchStartZoom.current * (dist / pinchStartDist.current)))
+      setZoom(newZoom)
+
+      // Calculate pan from midpoint movement
+      const midX = (t1.clientX + t2.clientX) / 2
+      const midY = (t1.clientY + t2.clientY) / 2
+      const deltaX = midX - panStartX.current
+      const deltaY = midY - panStartY.current
+      setPanX(panOffsetX.current + deltaX)
+      setPanY(panOffsetY.current + deltaY)
+    }, [])
+
+    const handleTouchEnd = useCallback((e: React.TouchEvent) => {
+      if (e.touches.length < 2) {
+        isPinching.current = false
+      }
+    }, [])
+
+    // ── Wheel zoom (desktop) ──
     const handleWheel = useCallback((e: React.WheelEvent) => {
       e.preventDefault()
-      const delta = e.deltaY > 0 ? -0.1 : 0.1
+      const delta = e.deltaY > 0 ? -0.15 : 0.15
       setZoom((z) => Math.min(5, Math.max(0.5, z + delta)))
     }, [])
 
+    // ── Zoom controls ──
     const zoomIn = useCallback(() => setZoom((z) => Math.min(5, z + 0.25)), [])
     const zoomOut = useCallback(() => setZoom((z) => Math.max(0.5, z - 0.25)), [])
-    const resetZoom = useCallback(() => { setZoom(1); setPan({ x: 0, y: 0 }) }, [])
-
-    // Pinch-to-zoom for mobile (in zoom mode)
-    const handleTouchStartZoom = useCallback((e: React.TouchEvent) => {
-      if (mode !== "zoom") return
-      e.preventDefault()
-      if (e.touches.length === 2) {
-        const dx = e.touches[0].clientX - e.touches[1].clientX
-        const dy = e.touches[0].clientY - e.touches[1].clientY
-        pinchStartDist.current = Math.sqrt(dx * dx + dy * dy)
-        pinchStartZoom.current = zoom
-      } else if (e.touches.length === 1) {
-        panStart.current = { x: e.touches[0].clientX, y: e.touches[0].clientY }
-        panStartOffset.current = { ...pan }
-      }
-    }, [mode, zoom, pan])
-
-    const handleTouchMoveZoom = useCallback((e: React.TouchEvent) => {
-      if (mode !== "zoom") return
-      e.preventDefault()
-      if (e.touches.length === 2 && pinchStartDist.current) {
-        const dx = e.touches[0].clientX - e.touches[1].clientX
-        const dy = e.touches[0].clientY - e.touches[1].clientY
-        const dist = Math.sqrt(dx * dx + dy * dy)
-        const scale = dist / pinchStartDist.current
-        setZoom(Math.min(5, Math.max(0.5, pinchStartZoom.current * scale)))
-      } else if (e.touches.length === 1 && panStart.current) {
-        const dx = e.touches[0].clientX - panStart.current.x
-        const dy = e.touches[0].clientY - panStart.current.y
-        setPan({ x: panStartOffset.current.x + dx, y: panStartOffset.current.y + dy })
-      }
-    }, [mode])
-
-    const handleTouchEndZoom = useCallback(() => {
-      pinchStartDist.current = null
-      panStart.current = null
-    }, [])
+    const resetView = useCallback(() => { setZoom(1); setPanX(0); setPanY(0) }, [])
 
     return (
-      <div className={cn("flex flex-col gap-2 sm:gap-4", className)}>
+      <div className={cn("flex flex-col gap-2", className)}>
         {/* Player label */}
-        <div className="flex items-center gap-3">
-          <div
-            className="size-4 border-2 border-black"
-            style={{ backgroundColor: playerColor }}
-          />
-          <span className="pixel-md text-foreground" style={{ textShadow: "1px 1px 0 rgba(0,0,0,0.2)" }}>{playerName}</span>
-        </div>
-
-        {/* Canvas with zoom/pan */}
-        <div
-          ref={wrapperRef}
-          className="relative border-4 border-black bg-white dark:bg-gray-100 overflow-hidden sm:aspect-[3/2]"
-          style={{ boxShadow: "6px 6px 0 rgba(0,0,0,0.3)" }}
-          onWheel={handleWheel}
-        >
-          <div
-            style={{
-              transform: `scale(${zoom}) translate(${pan.x / zoom}px, ${pan.y / zoom}px)`,
-              transformOrigin: "center center",
-              width: "100%",
-              height: "100%",
-            }}
-          >
-            <canvas
-              ref={canvasRef}
-              width={600}
-              height={600}
-              className={cn(
-                "w-full h-auto sm:h-full block",
-                disabled ? "opacity-50 cursor-not-allowed pointer-events-none" : "",
-                mode === "draw" ? "cursor-crosshair touch-none" : "cursor-grab touch-auto"
-              )}
-              onMouseDown={mode === "draw" ? startDraw : undefined}
-              onMouseMove={mode === "draw" ? draw : undefined}
-              onMouseUp={mode === "draw" ? stopDraw : undefined}
-              onMouseLeave={mode === "draw" ? stopDraw : undefined}
-              onTouchStart={mode === "draw" ? startDraw : handleTouchStartZoom}
-              onTouchMove={mode === "draw" ? draw : handleTouchMoveZoom}
-              onTouchEnd={mode === "draw" ? stopDraw : handleTouchEndZoom}
-            />
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <div className="size-3 border-2 border-black" style={{ backgroundColor: playerColor }} />
+            <span className="pixel-sm text-foreground">{playerName}</span>
           </div>
-          {disabled && (
-            <div className="absolute inset-0 flex items-center justify-center bg-black/20 pointer-events-none">
-              <div className="pixel-md text-primary" style={{ textShadow: "2px 2px 0 #fff", background: "rgba(255,255,255,0.8)", padding: "8px 16px", border: "2px solid #000" }}>
-                {disabledReason === "opponent" ? "OPPONENT'S CANVAS" : "TIME'S UP!"}
-              </div>
-            </div>
-          )}
-          {/* Zoom indicator */}
           {zoom !== 1 && (
-            <div className="absolute top-2 right-2 bg-black/60 text-white text-xs px-2 py-1 rounded font-bold pointer-events-none">
+            <span className="text-[10px] font-bold text-foreground bg-card/80 px-2 py-0.5 border border-black/20 rounded">
               {Math.round(zoom * 100)}%
-            </div>
+            </span>
           )}
         </div>
 
-        {/* Toolbar */}
-        <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 border-4 border-black bg-card p-2 sm:p-3">
-          <TooltipProvider>
-            {/* Mode toggle: Draw / Zoom */}
-            <Tooltip>
-              <TooltipTrigger asChild>
+        {/* Canvas container */}
+        <div className="relative">
+          <div
+            ref={containerRef}
+            className="relative border-4 border-black bg-white dark:bg-gray-100 overflow-hidden sm:aspect-[3/2] touch-none"
+            style={{ boxShadow: "4px 4px 0 rgba(0,0,0,0.3)" }}
+            onWheel={handleWheel}
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
+          >
+            <div
+              style={{
+                transform: `translate(${panX}px, ${panY}px) scale(${zoom})`,
+                transformOrigin: "0 0",
+                width: "100%",
+                height: "100%",
+              }}
+            >
+              <canvas
+                ref={canvasRef}
+                width={1024}
+                height={1024}
+                className={cn(
+                  "w-full h-auto sm:h-full block",
+                  disabled ? "opacity-50 pointer-events-none" : "cursor-crosshair",
+                )}
+                onPointerDown={handlePointerDown}
+                onPointerMove={handlePointerMove}
+                onPointerUp={handlePointerUp}
+                onPointerLeave={handlePointerUp}
+              />
+            </div>
+
+            {/* Disabled overlay */}
+            {disabled && (
+              <div className="absolute inset-0 flex items-center justify-center bg-black/20 pointer-events-none">
+                <div className="pixel-sm sm:pixel-md text-primary" style={{ textShadow: "2px 2px 0 #fff", background: "rgba(255,255,255,0.85)", padding: "6px 14px", border: "2px solid #000" }}>
+                  {disabledReason === "opponent" ? "OPPONENT'S CANVAS" : "TIME'S UP!"}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* ── Floating Toolbar (Glassmorphism) ── */}
+          {!disabled && (
+            <div className="absolute bottom-3 left-1/2 -translate-x-1/2 pointer-events-none z-10">
+              <div className="pointer-events-auto flex items-center gap-1 px-2 py-1.5 rounded-full border border-white/30 dark:border-white/10 bg-white/70 dark:bg-black/50 backdrop-blur-xl shadow-lg">
+                {/* Pen */}
                 <button
-                  onClick={() => setMode("draw")}
-                  disabled={disabled}
-                  className={cn("arcade-btn px-2 sm:px-3 py-2 text-sm font-bold flex items-center gap-1", mode === "draw" ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground")}
+                  onClick={() => { setIsEraser(false); setShowColors(false) }}
+                  className={cn(
+                    "p-2 rounded-full transition-colors",
+                    !isEraser ? "bg-primary text-white" : "text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700"
+                  )}
                 >
                   <Pencil className="size-4" />
                 </button>
-              </TooltipTrigger>
-              <TooltipContent>Draw Mode</TooltipContent>
-            </Tooltip>
 
-            <Tooltip>
-              <TooltipTrigger asChild>
+                {/* Eraser */}
                 <button
-                  onClick={() => setMode("zoom")}
-                  disabled={disabled}
-                  className={cn("arcade-btn px-2 sm:px-3 py-2 text-sm font-bold flex items-center gap-1", mode === "zoom" ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground")}
-                >
-                  <Hand className="size-4" />
-                </button>
-              </TooltipTrigger>
-              <TooltipContent>Zoom/Pan Mode</TooltipContent>
-            </Tooltip>
-
-            <div className="border-r-2 border-black h-6" />
-
-            {/* Zoom controls */}
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <button onClick={zoomOut} disabled={disabled || zoom <= 0.5} className="arcade-btn px-2 py-2 text-sm font-bold bg-muted text-muted-foreground disabled:opacity-50 flex items-center">
-                  <ZoomOut className="size-4" />
-                </button>
-              </TooltipTrigger>
-              <TooltipContent>Zoom Out</TooltipContent>
-            </Tooltip>
-
-            <button onClick={resetZoom} disabled={disabled} className="text-xs font-bold text-foreground min-w-[40px] text-center">
-              {Math.round(zoom * 100)}%
-            </button>
-
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <button onClick={zoomIn} disabled={disabled || zoom >= 5} className="arcade-btn px-2 py-2 text-sm font-bold bg-muted text-muted-foreground disabled:opacity-50 flex items-center">
-                  <ZoomIn className="size-4" />
-                </button>
-              </TooltipTrigger>
-              <TooltipContent>Zoom In</TooltipContent>
-            </Tooltip>
-
-            <div className="border-r-2 border-black h-6" />
-
-            {/* Eraser */}
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <button
-                  onClick={() => { setIsEraser(true); setMode("draw") }}
-                  disabled={disabled}
-                  className={cn("arcade-btn px-2 sm:px-3 py-2 text-sm font-bold flex items-center gap-1", isEraser && mode === "draw" ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground")}
+                  onClick={() => { setIsEraser(true); setShowColors(false) }}
+                  className={cn(
+                    "p-2 rounded-full transition-colors",
+                    isEraser ? "bg-primary text-white" : "text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700"
+                  )}
                 >
                   <Eraser className="size-4" />
                 </button>
-              </TooltipTrigger>
-              <TooltipContent>Eraser</TooltipContent>
-            </Tooltip>
 
-            <div className="border-r-2 border-black h-6" />
+                {/* Divider */}
+                <div className="w-px h-6 bg-gray-300 dark:bg-gray-600 mx-1" />
 
-            {/* Brush size */}
-            <div className="flex items-center gap-2">
-              <div
-                className="border-2 border-black shrink-0"
-                style={{
-                  width: Math.max(4, brushSize),
-                  height: Math.max(4, brushSize),
-                  backgroundColor: "#000",
-                }}
-              />
-              <Slider
-                min={2}
-                max={30}
-                step={1}
-                value={[brushSize]}
-                onValueChange={([v]) => setBrushSize(v)}
-                className="w-16"
-                disabled={disabled}
-              />
-            </div>
-
-            <div className="border-r-2 border-black h-6" />
-
-            {/* Color palette */}
-            <div className="flex flex-wrap gap-0.5 sm:gap-1">
-              {COLORS.map((c) => (
+                {/* Color indicator / toggle */}
                 <button
-                  key={c}
-                  disabled={disabled}
-                  onClick={() => { setColor(c); setIsEraser(false) }}
-                  className={cn(
-                    "size-5 sm:size-6 border-2 transition-transform hover:scale-110 focus:outline-none",
-                    color === c && !isEraser ? "border-black scale-110 ring-2 ring-primary" : "border-black"
-                  )}
-                  style={{ backgroundColor: c }}
+                  onClick={() => setShowColors(!showColors)}
+                  className="p-1 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+                >
+                  <div
+                    className="size-6 rounded-full border-2 border-white shadow-sm"
+                    style={{ backgroundColor: color }}
+                  />
+                </button>
+
+                {/* Brush size */}
+                <input
+                  type="range"
+                  min={1}
+                  max={30}
+                  value={brushSize}
+                  onChange={(e) => setBrushSize(Number(e.target.value))}
+                  className="w-16 sm:w-20 h-1.5 accent-primary cursor-pointer"
                 />
-              ))}
-            </div>
 
-            <div className="border-r-2 border-black h-6" />
+                {/* Divider */}
+                <div className="w-px h-6 bg-gray-300 dark:bg-gray-600 mx-1" />
 
-            {/* Undo / Clear */}
-            <Tooltip>
-              <TooltipTrigger asChild>
+                {/* Zoom controls */}
+                <button onClick={zoomOut} className="p-1.5 rounded-full text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">
+                  <ZoomOut className="size-3.5" />
+                </button>
+                <button onClick={resetView} className="p-1.5 rounded-full text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">
+                  <RotateCcw className="size-3.5" />
+                </button>
+                <button onClick={zoomIn} className="p-1.5 rounded-full text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">
+                  <ZoomIn className="size-3.5" />
+                </button>
+
+                {/* Divider */}
+                <div className="w-px h-6 bg-gray-300 dark:bg-gray-600 mx-1" />
+
+                {/* Undo */}
                 <button
                   onClick={undo}
-                  disabled={disabled || history.length === 0}
-                  className="arcade-btn px-3 py-2 text-sm font-bold bg-muted text-muted-foreground disabled:opacity-50 flex items-center"
+                  disabled={history.length === 0}
+                  className="p-2 rounded-full text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 disabled:opacity-30 transition-colors"
                 >
                   <Undo2 className="size-4" />
                 </button>
-              </TooltipTrigger>
-              <TooltipContent>Undo</TooltipContent>
-            </Tooltip>
 
-            <Tooltip>
-              <TooltipTrigger asChild>
+                {/* Clear */}
                 <button
                   onClick={() => {
                     const canvas = canvasRef.current
@@ -405,15 +410,30 @@ const DrawingCanvas = forwardRef<DrawingCanvasHandle, Props>(
                     ctx.fillStyle = "#ffffff"
                     ctx.fillRect(0, 0, canvas.width, canvas.height)
                   }}
-                  disabled={disabled}
-                  className="arcade-btn px-3 py-2 text-sm font-bold bg-destructive text-destructive-foreground flex items-center"
+                  className="p-2 rounded-full text-red-500 hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors"
                 >
                   <Trash2 className="size-4" />
                 </button>
-              </TooltipTrigger>
-              <TooltipContent>Clear canvas</TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
+              </div>
+
+              {/* Color palette popup */}
+              {showColors && (
+                <div className="pointer-events-auto mt-2 flex flex-wrap justify-center gap-1.5 px-3 py-2 rounded-2xl border border-white/30 dark:border-white/10 bg-white/80 dark:bg-black/60 backdrop-blur-xl shadow-lg max-w-[280px] mx-auto">
+                  {COLORS.map((c) => (
+                    <button
+                      key={c}
+                      onClick={() => { setColor(c); setIsEraser(false); setShowColors(false) }}
+                      className={cn(
+                        "size-7 rounded-full border-2 transition-transform hover:scale-125",
+                        color === c && !isEraser ? "border-primary scale-125 ring-2 ring-primary/50" : "border-white/50 dark:border-gray-600"
+                      )}
+                      style={{ backgroundColor: c }}
+                    />
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </div>
     )
