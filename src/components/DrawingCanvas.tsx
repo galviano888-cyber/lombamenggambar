@@ -161,16 +161,15 @@ const DrawingCanvas = forwardRef<DrawingCanvasHandle, Props>(
         </div>
 
         {/* Canvas */}
-        <div className="relative border-4 border-black bg-white dark:bg-gray-100 overflow-hidden" style={{ boxShadow: "6px 6px 0 rgba(0,0,0,0.3)" }}>
+        <div className="relative border-4 border-black bg-white dark:bg-gray-100 overflow-hidden aspect-[3/4] sm:aspect-[3/2]" style={{ boxShadow: "6px 6px 0 rgba(0,0,0,0.3)", maxHeight: "calc(100svh - 180px)" }}>
           <canvas
             ref={canvasRef}
             width={600}
             height={400}
             className={cn(
-              "w-full touch-none block aspect-[3/4] sm:aspect-[3/2]",
+              "w-full h-full touch-none block",
               disabled ? "opacity-50 cursor-not-allowed pointer-events-none" : "cursor-crosshair"
             )}
-            style={{ maxHeight: "calc(100svh - 180px)" }}
             onMouseDown={startDraw}
             onMouseMove={draw}
             onMouseUp={stopDraw}
