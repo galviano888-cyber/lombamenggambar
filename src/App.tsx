@@ -470,7 +470,7 @@ function RoomFormPanel({ onStart, socket }: { onStart: (role: PlayerRole) => voi
 function LobbyScreen({ onStart, socket }: { onStart: (role: PlayerRole) => void; socket: Socket | null }) {
   const connected = socket?.connected ?? false
   return (
-    <div className="relative min-h-[70vh]">
+    <div className="relative min-h-[70vh] overflow-hidden">
       {/* Full-width decorations layer */}
       <LobbyDecorations />
 
@@ -962,7 +962,7 @@ export function App() {
   }, [socket, rerollsLeft])
 
   return (
-    <div className="min-h-svh bg-background">
+    <div className="min-h-svh bg-background overflow-x-hidden">
       <header className="border-b-4 border-black bg-card sticky top-0 z-50">
         <div className="max-w-6xl mx-auto px-2 sm:px-4 h-12 sm:h-16 flex items-center justify-between">
           <div className="flex items-center gap-2 sm:gap-3">
